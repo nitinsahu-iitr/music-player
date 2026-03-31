@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Drive Music Player</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --surface: #141416;
+    --surface2: #1c1c1f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --accent: #c8f04a;
+    --accent2: #a8d438;
+    --text: #f0ede6;
+    --muted: #6b6a66;
+    --muted2: #999896;
+    --danger: #ff5c5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 0;
+    padding: 2rem;
+    text-align: center;
+  }
+  .logo-mark {
+    width: 72px; height: 72px;
+    border: 1.5px solid var(--border2);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+  .logo-mark svg { width: 32px; height: 32px; }
+  #auth-screen h1 {
+    font-size: 2.4rem; font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.6rem;
+    line-height: 1.1;
+  }
+  #auth-screen h1 span { color: var(--accent); }
+  #auth-screen p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted2);
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.01em;
+  }
+  #sign-in-btn {
+    background: var(--accent);
+    color: #0c0c0e;
+    border: none;
+    padding: 0.85rem 2.2rem;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #sign-in-btn:hover { background: var(--accent2); transform: scale(1.02); }
+  #sign-in-btn:active { transform: scale(0.98); }
+  .config-note {
+    margin-top: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    max-width: 340px;
+    line-height: 1.7;
+  }
+  .config-note a { color: var(--accent); text-decoration: none; }
+  #client-id-input {
+    margin-top: 1.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    width: 340px;
+    outline: none;
+    text-align: center;
+  }
+  #client-id-input:focus { border-color: var(--accent); }
+  #client-id-input::placeholder { color: var(--muted); }
+
+  /* ── APP SHELL ── */
+  #app { display: none; width: 100%; max-width: 900px; padding: 2rem 1.5rem 6rem; }
+
+  /* Header */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-header h2 { font-size: 1rem; font-weight: 600; letter-spacing: 0.04em; color: var(--muted2); text-transform: uppercase; }
+  .sign-out-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    padding: 0.4rem 0.9rem; border-radius: 100px;
+    cursor: pointer; transition: color 0.15s, border-color 0.15s;
+  }
+  .sign-out-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* Now Playing */
+  #now-playing {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.6rem;
+    margin-bottom: 2rem;
+  }
+  .np-top {
+    display: flex; align-items: flex-start; gap: 1.2rem; margin-bottom: 1.4rem;
+  }
+  .album-art {
+    width: 64px; height: 64px; flex-shrink: 0;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .album-art svg { width: 24px; height: 24px; opacity: 0.4; }
+  .np-meta { flex: 1; min-width: 0; }
+  .np-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .np-title {
+    font-size: 1.25rem; font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text);
+  }
+  .np-artist {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem; color: var(--muted2);
+    margin-top: 0.2rem;
+  }
+
+  /* Progress */
+  .progress-area { margin-bottom: 1.2rem; }
+  .progress-track {
+    width: 100%; height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s linear;
+    pointer-events: none;
+  }
+  .progress-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    left: 0%;
+    cursor: grab;
+    transition: left 0.3s linear;
+    box-shadow: 0 0 0 3px rgba(200,240,74,0.2);
+  }
+  .time-row {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.6rem;
+  }
+  .ctrl {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted2); cursor: pointer;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem; font-weight: 600;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ctrl:hover { border-color: var(--border2); color: var(--text); }
+  .ctrl-sm { width: 36px; height: 36px; }
+  .ctrl-play {
+    width: 48px; height: 48px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0c0c0e;
+    font-size: 1rem;
+  }
+  .ctrl-play:hover { background: var(--accent2); border-color: var(--accent2); color: #0c0c0e; }
+
+  /* Volume */
+  .vol-row {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-left: auto;
+  }
+  .vol-icon { font-size: 0.85rem; color: var(--muted); }
+  input[type=range]#vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 80px; height: 3px;
+    background: var(--surface2);
+    border-radius: 2px; cursor: pointer; outline: none;
+  }
+  input[type=range]#vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--muted2);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* Track list */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .track-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+  }
+  #track-list { display: flex; flex-direction: column; gap: 2px; }
+  .track-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+  }
+  .track-row:hover { background: var(--surface); }
+  .track-row.active {
+    background: var(--surface);
+    border-color: var(--border);
+  }
+  .track-index {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+    width: 22px; text-align: center; flex-shrink: 0;
+  }
+  .track-row.active .track-index { color: var(--accent); }
+  .track-name {
+    flex: 1; min-width: 0;
+    font-size: 0.88rem; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .track-row.active .track-name { color: var(--accent); }
+  .track-ext {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; color: var(--muted);
+    background: var(--surface2);
+    padding: 2px 7px; border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .loading-row {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem; color: var(--muted);
+    text-align: center; padding: 2rem;
+    letter-spacing: 0.05em;
+  }
+  .refresh-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    padding: 0.35rem 0.8rem; border-radius: 100px;
+    cursor: pointer; transition: color 0.15s;
+  }
+  .refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pulsing { animation: pulse 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="logo-mark">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="10" stroke="#c8f04a" stroke-width="1.5"/>
+      <circle cx="16" cy="16" r="4" fill="#c8f04a"/>
+      <line x1="16" y1="6" x2="16" y2="2" stroke="#c8f04a" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="16" y1="30" x2="16" y2="26" stroke="#c8f04a" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <h1>Drive<span>Player</span></h1>
+  <p>// stream your music straight from google drive</p>
+
+  <input id="client-id-input" type="text" placeholder="Paste your Google OAuth Client ID here" />
+  <button id="sign-in-btn" onclick="startAuth()">Connect Google Drive</button>
+
+  <p class="config-note">
+    Need a Client ID? <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a>
+    → New Project → Enable Drive API → Credentials → OAuth 2.0 Client ID (Web).
+    Add <strong>this page's URL</strong> as an authorized origin.
+  </p>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-header">
+    <h2>Drive Player</h2>
+    <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+  </div>
+
+  <div id="now-playing">
+    <div class="np-top">
+      <div class="album-art">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="np-meta">
+        <div class="np-label">Now Playing</div>
+        <div class="np-title" id="np-title">Select a track</div>
+        <div class="np-artist" id="np-artist">—</div>
+      </div>
+    </div>
+
+    <div class="progress-area">
+      <div class="progress-track" id="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-thumb" id="progress-thumb"></div>
+      </div>
+      <div class="time-row">
+        <span id="cur-time">0:00</span>
+        <span id="tot-time">0:00</span>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:0.6rem;">
+      <div class="controls" style="flex:1;">
+        <button class="ctrl ctrl-sm" id="prev-btn" title="Previous">&#9664;&#9664;</button>
+        <button class="ctrl ctrl-play" id="play-btn" title="Play/Pause">&#9654;</button>
+        <button class="ctrl ctrl-sm" id="next-btn" title="Next">&#9654;&#9654;</button>
+      </div>
+      <div class="vol-row">
+        <span class="vol-icon">&#128266;</span>
+        <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="1" />
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">Library</span>
+    <div style="display:flex;gap:0.6rem;align-items:center;">
+      <span class="track-count" id="track-count"></span>
+      <button class="refresh-btn" onclick="loadTracks()">↺ Refresh</button>
+    </div>
+  </div>
+  <div id="track-list"><div class="loading-row pulsing">Loading tracks…</div></div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────────
+const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+const AUDIO_MIME_TYPES = ['audio/mpeg','audio/mp3','audio/wav','audio/ogg','audio/flac','audio/aac','audio/x-m4a','audio/mp4'];
+
+let tokenClient, accessToken = null;
+let tracks = [], currentIdx = -1;
+const audio = document.getElementById('audio');
+
+// ─── AUTH ───────────────────────────────────────────────────────────────────
+function getClientId() {
+  return document.getElementById('client-id-input').value.trim()
+    || localStorage.getItem('drive_player_client_id') || '';
+}
+
+function startAuth() {
+  const clientId = getClientId();
+  if (!clientId) { alert('Please paste your Google OAuth Client ID first.'); return; }
+  localStorage.setItem('drive_player_client_id', clientId);
+
+  const gsiScript = document.createElement('script');
+  gsiScript.src = 'https://accounts.google.com/gsi/client';
+  gsiScript.onload = () => {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: SCOPES,
+      callback: (resp) => {
+        if (resp.error) { console.error(resp); return; }
+        accessToken = resp.access_token;
+        showApp();
+        loadTracks();
+      }
+    });
+    tokenClient.requestAccessToken();
+  };
+  document.head.appendChild(gsiScript);
+}
+
+function signOut() {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken, () => {});
+  accessToken = null; tracks = []; currentIdx = -1;
+  audio.pause(); audio.src = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// ─── DRIVE API ───────────────────────────────────────────────────────────────
+async function loadTracks() {
+  document.getElementById('track-list').innerHTML = '<div class="loading-row pulsing">Scanning Drive for audio files…</div>';
+  document.getElementById('track-count').textContent = '';
+
+  try {
+    let allFiles = [], pageToken = '';
+    const mimeQuery = AUDIO_MIME_TYPES.map(m => `mimeType='${m}'`).join(' or ');
+    do {
+      const url = `https://www.googleapis.com/drive/v3/files?q=(${mimeQuery}) and trashed=false`
+        + `&fields=nextPageToken,files(id,name,mimeType,size)`
+        + `&pageSize=200${pageToken ? '&pageToken=' + pageToken : ''}`;
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      allFiles = allFiles.concat(data.files || []);
+      pageToken = data.nextPageToken || '';
+    } while (pageToken);
+
+    tracks = allFiles.sort((a,b) => a.name.localeCompare(b.name));
+    renderTracks();
+  } catch(e) {
+    document.getElementById('track-list').innerHTML =
+      `<div class="loading-row" style="color:var(--danger)">Error: ${e.message}</div>`;
+  }
+}
+
+function ext(name) {
+  return (name.split('.').pop() || '').toUpperCase();
+}
+
+function renderTracks() {
+  const list = document.getElementById('track-list');
+  if (!tracks.length) {
+    list.innerHTML = '<div class="loading-row">No audio files found in your Drive.</div>';
+    document.getElementById('track-count').textContent = '';
+    return;
+  }
+  document.getElementById('track-count').textContent = tracks.length + ' tracks';
+  list.innerHTML = tracks.map((t, i) => `
+    <div class="track-row${i===currentIdx?' active':''}" onclick="playSong(${i})">
+      <span class="track-index">${i===currentIdx ? '▶' : (i+1)}</span>
+      <span class="track-name">${escHtml(cleanName(t.name))}</span>
+      <span class="track-ext">${ext(t.name)}</span>
+    </div>
+  `).join('');
+}
+
+function cleanName(name) {
+  return name.replace(/\.[^.]+$/, '');
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── PLAYBACK ─────────────────────────────────────────────────────────────────
+async function playSong(idx) {
+  currentIdx = idx;
+  const t = tracks[idx];
+  const streamUrl = `https://www.googleapis.com/drive/v3/files/${t.id}?alt=media`;
+  audio.src = streamUrl;
+  audio.setRequestHeader = undefined;
+
+  // Fetch with auth header → blob → object URL
+  const res = await fetch(streamUrl, { headers: { Authorization: 'Bearer ' + accessToken } });
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  audio.src = objUrl;
+  audio.play();
+
+  document.getElementById('np-title').textContent = cleanName(t.name);
+  document.getElementById('np-artist').textContent = ext(t.name) + ' · from Google Drive';
+  document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
+  renderTracks();
+}
+
+document.getElementById('play-btn').onclick = () => {
+  if (currentIdx === -1 && tracks.length) { playSong(0); return; }
+  if (audio.paused) { audio.play(); document.getElementById('play-btn').innerHTML = '&#9646;&#9646;'; }
+  else { audio.pause(); document.getElementById('play-btn').innerHTML = '&#9654;'; }
+};
+
+document.getElementById('prev-btn').onclick = () => {
+  if (currentIdx > 0) playSong(currentIdx - 1);
+};
+document.getElementById('next-btn').onclick = () => {
+  if (currentIdx < tracks.length - 1) playSong(currentIdx + 1);
+};
+
+audio.addEventListener('ended', () => {
+  if (currentIdx < tracks.length - 1) playSong(currentIdx + 1);
+  else document.getElementById('play-btn').innerHTML = '&#9654;';
+});
+
+// Progress
+audio.addEventListener('timeupdate', updateProgress);
+function fmt(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m + ':' + (sec<10?'0':'') + sec;
+}
+function updateProgress() {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-thumb').style.left = pct + '%';
+  document.getElementById('cur-time').textContent = fmt(audio.currentTime);
+  document.getElementById('tot-time').textContent = fmt(audio.duration);
+}
+
+// Seek
+const track = document.getElementById('progress-track');
+track.addEventListener('click', (e) => {
+  if (!audio.duration) return;
+  const rect = track.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+});
+
+// Volume
+document.getElementById('vol-slider').addEventListener('input', (e) => {
+  audio.volume = e.target.value;
+});
+
+// Restore client id
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('drive_player_client_id');
+  if (saved) document.getElementById('client-id-input').value = saved;
+});
+</script>
+</body>
+</html>
